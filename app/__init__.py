@@ -1,6 +1,7 @@
 import os
 from flask import Flask
 from .config import Config
+from .models import db
 
 
 def create_app(test_config=None):
@@ -11,6 +12,7 @@ def create_app(test_config=None):
         app.config.update(test_config)
 
     os.makedirs(app.instance_path, exist_ok=True)
+    db.init_app(app)
 
     @app.route("/")
     def home():
