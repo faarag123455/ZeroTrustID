@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Journaux de sécurité</h2>
+<table border="1" cellpadding="4">
+  <tr>
+    <th>ID</th><th>Date</th><th>Événement</th>
+    <th>Utilisateur</th><th>IP</th><th>Détails</th>
+  </tr>
+  {% for l in logs %}
+  <tr>
+    <td>{{ l.id }}</td>
+    <td>{{ l.created_at }}</td>
+    <td>{{ l.event_type }}</td>
+    <td>{{ l.user_id or "-" }}</td>
+    <td>{{ l.ip }}</td>
+    <td>{{ l.details or "" }}</td>
+  </tr>
+  {% endfor %}
+</table>
+<p><a href="{{ url_for('auth.dashboard') }}">Retour</a></p>
+{% endblock %}

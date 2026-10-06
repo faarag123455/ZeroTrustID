@@ -17,6 +17,9 @@ def create_app(test_config=None):
     from .auth import routes as auth_routes
     app.register_blueprint(auth_routes.bp)
 
+    from .admin import routes as admin_routes
+    app.register_blueprint(admin_routes.bp)
+
     @app.route("/")
     def home():
         return "ZeroTrustID is running!"
