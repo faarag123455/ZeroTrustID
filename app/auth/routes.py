@@ -12,6 +12,8 @@ from app.security.passwords import validate_password_policy
 from app.security.sessions import (create_session, destroy_session,
                                    get_valid_session)
 
+from app.extensions import limiter
+from app.security.lockout import is_locked, register_failure, reset_failures
 bp = Blueprint("auth", __name__)
 
 ROLE_USER = 1
@@ -52,8 +54,8 @@ def register():
 
     return render_template("register.html")
 
-
 @bp.route("/login", methods=["GET", "POST"])
+@limiter.limit("10 per minute", methods=["POST"])
 def login():
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
@@ -61,25 +63,34 @@ def login():
 
         db = get_db()
         user = db.execute(
-            "SELECT id, password_hash FROM users WHERE email = ?",
-            (email,)).fetchone()
+            "SELECT id, password_hash, failed_attempts, locked_until "
+            "FROM users WHERE email = ?", (email,)).fetchone()
 
+        # On calcule TOUJOURS un hachage (T06)
         hash_to_check = user["password_hash"] if user else DUMMY_HASH
         password_ok = check_password_hash(hash_to_check, password)
 
-        if user and password_ok:
+        locked = bool(user) and is_locked(user)
+
+        if user and password_ok and not locked:
+            reset_failures(user["id"])
             session.clear()
             session["sid"] = create_session(user["id"])
             session.permanent = True
             log_event("LOGIN_SUCCESS", user["id"])
             return redirect(url_for("auth.dashboard"))
 
-        log_event("LOGIN_FAILED", user["id"] if user else None,
-                  details=f"email={email}")
+        if user and locked:
+            log_event("LOGIN_BLOCKED", user["id"], details="compte bloque")
+        else:
+            log_event("LOGIN_FAILED", user["id"] if user else None,
+                      details=f"email={email}")
+            if user:
+                register_failure(user)
+
         flash("Identifiants invalides.")
 
     return render_template("login.html")
-
 
 @bp.route("/dashboard")
 @login_required

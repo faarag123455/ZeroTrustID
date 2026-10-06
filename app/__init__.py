@@ -1,6 +1,7 @@
 import os
 from flask import Flask
 from .config import Config
+from .extensions import limiter
 from .models import db
 
 
@@ -13,6 +14,7 @@ def create_app(test_config=None):
 
     os.makedirs(app.instance_path, exist_ok=True)
     db.init_app(app)
+    limiter.init_app(app)
 
     from .auth import routes as auth_routes
     app.register_blueprint(auth_routes.bp)

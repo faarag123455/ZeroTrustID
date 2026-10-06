@@ -19,3 +19,4 @@ class Config:
     SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE") == "1"
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=15)
+    RATELIMIT_STORAGE_URI = "memory://"
