@@ -3,12 +3,17 @@ from flask import (Blueprint, abort, flash, g, redirect, render_template,
 
 from app.models.db import get_db
 from app.security.audit import log_event
-from app.security.crypto import decrypt, encrypt
+from app.security.crypto import decrypt, encrypt, sign, verify
 from app.security.decorators import require_permission
 
 bp = Blueprint("documents", __name__, url_prefix="/documents")
 
 MAX_LEN = 5000
+
+
+def _mac_input(user_id, ciphertext):
+    """Lie le texte chiffré à son propriétaire."""
+    return f"{user_id}:".encode() + bytes(ciphertext)
 
 
 @bp.route("/")
@@ -29,11 +34,13 @@ def new():
         if not text or len(text) > MAX_LEN:
             flash(f"Contenu requis (max {MAX_LEN} caractères).")
         else:
+            uid = g.user["user_id"]
+            ct = encrypt(text.encode())
             db = get_db()
             db.execute(
                 "INSERT INTO encrypted_data (user_id, ciphertext, hmac) "
                 "VALUES (?, ?, ?)",
-                (g.user["user_id"], encrypt(text.encode()), ""))
+                (uid, ct, sign(_mac_input(uid, ct))))
             db.commit()
             return redirect(url_for("documents.index"))
     return render_template("document_new.html")
@@ -42,15 +49,19 @@ def new():
 @bp.route("/<int:doc_id>")
 @require_permission("documents:read")
 def view(doc_id):
-    # Anti-IDOR : le filtre par propriétaire est dans la requête elle-même
+    uid = g.user["user_id"]
     row = get_db().execute(
-        "SELECT id, ciphertext FROM encrypted_data "
-        "WHERE id = ? AND user_id = ?",
-        (doc_id, g.user["user_id"])).fetchone()
+        "SELECT id, ciphertext, hmac FROM encrypted_data "
+        "WHERE id = ? AND user_id = ?", (doc_id, uid)).fetchone()
     if row is None:
-        log_event("ACCESS_DENIED", g.user["user_id"],
-                  details=f"document {doc_id}")
+        log_event("ACCESS_DENIED", uid, details=f"document {doc_id}")
         abort(404)
+
+    # Intégrité d'abord : on ne déchiffre jamais une donnée altérée
+    if not verify(_mac_input(uid, row["ciphertext"]), row["hmac"]):
+        log_event("INTEGRITY_FAILED", uid, details=f"document {doc_id}")
+        abort(500)
+
     content = decrypt(row["ciphertext"]).decode()
     return render_template("document_view.html", doc_id=row["id"],
                            content=content)

@@ -6,6 +6,7 @@
 <p>Ou saisis la clé à la main : <code>{{ secret }}</code></p>
 <form method="post">
   <label>Code affiché
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input name="code" inputmode="numeric" maxlength="6" required>
   </label>
   <button type="submit">Confirmer</button>

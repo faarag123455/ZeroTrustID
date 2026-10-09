@@ -2,6 +2,7 @@
 {% block content %}
 <h2>Vérification en deux étapes</h2>
 <form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <label>Code à 6 chiffres
     <input name="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required>
   </label>

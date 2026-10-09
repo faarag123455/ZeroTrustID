@@ -2,6 +2,7 @@
 {% block content %}
 <h2>Nouveau document</h2>
 <form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <textarea name="content" rows="8" cols="60" required></textarea><br>
   <button type="submit">Enregistrer (chiffré)</button>
 </form>
