@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Vérification en deux étapes</h2>
+<form method="post">
+  <label>Code à 6 chiffres
+    <input name="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required>
+  </label>
+  <button type="submit">Valider</button>
+</form>
+{% endblock %}

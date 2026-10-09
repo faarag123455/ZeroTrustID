@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Activer la MFA</h2>
+<p>Scanne ce QR code avec Google Authenticator, Microsoft Authenticator ou Aegis :</p>
+<img src="{{ qr }}" alt="QR code MFA" width="200" height="200">
+<p>Ou saisis la clé à la main : <code>{{ secret }}</code></p>
+<form method="post">
+  <label>Code affiché
+    <input name="code" inputmode="numeric" maxlength="6" required>
+  </label>
+  <button type="submit">Confirmer</button>
+</form>
+{% endblock %}
