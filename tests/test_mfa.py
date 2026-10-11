@@ -36,7 +36,8 @@ def enable_mfa(client):
     with client.session_transaction() as s:
         secret = s["mfa_pending_secret"]
     r = client.post("/mfa/setup", data={"code": pyotp.TOTP(secret).now()})
-    assert r.status_code == 302
+    assert r.status_code == 200
+    assert b"Codes de secours" in r.data
     client.post("/logout")
     return secret
 

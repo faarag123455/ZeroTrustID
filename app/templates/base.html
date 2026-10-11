@@ -2,18 +2,50 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ZeroTrustID</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <h1>ZeroTrustID</h1>
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <ul>
-        {% for m in messages %}<li>{{ m }}</li>{% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
-  {% block content %}{% endblock %}
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="{{ url_for('auth.dashboard') }}"><span class="logo">ZT</span> ZeroTrustID</a>
+      <nav class="nav">
+        {% if nav_user %}
+          <a href="{{ url_for('auth.dashboard') }}">Accueil</a>
+          <a href="{{ url_for('documents.index') }}">Documents</a>
+          <a href="{{ url_for('account.index') }}">Profil</a>
+          {% if nav_user.can_users %}<a href="{{ url_for('admin.users') }}">Administration</a>{% endif %}
+          {% if nav_user.can_logs %}<a href="{{ url_for('admin.logs') }}">Journaux</a>{% endif %}
+          <span class="spacer"></span>
+          <span class="who">{{ nav_user.email }}</span>
+          <span class="badge">{{ nav_user.role }}</span>
+          <form method="post" class="inline" action="{{ url_for('auth.logout') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="secondary">Se déconnecter</button>
+          </form>
+        {% else %}
+          <span class="spacer"></span>
+          <a href="{{ url_for('auth.login') }}">Connexion</a>
+          <a href="{{ url_for('auth.register') }}">Inscription</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card {% block card_class %}{% endblock %}">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <ul class="flashes">
+            {% for m in messages %}<li>{{ m }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <footer>ZeroTrustID · Authentifier · Autoriser · Protéger · Surveiller</footer>
 </body>
 </html>

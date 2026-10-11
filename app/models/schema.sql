@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS security_logs;
 DROP TABLE IF EXISTS sessions;
 DROP TABLE IF EXISTS role_permissions;
 DROP TABLE IF EXISTS permissions;
+DROP TABLE IF EXISTS backup_codes;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS roles;
 
@@ -34,6 +35,13 @@ CREATE TABLE users (
     locked_until    TIMESTAMP,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE backup_codes (
+    id         INTEGER PRIMARY KEY,
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    code_hash  TEXT NOT NULL,
+    used_at    TIMESTAMP
+);
+
 
 CREATE TABLE sessions (
     id         TEXT PRIMARY KEY,
@@ -44,12 +52,14 @@ CREATE TABLE sessions (
 );
 
 CREATE TABLE security_logs (
-    id         INTEGER PRIMARY KEY,
-    event_type TEXT NOT NULL,
-    user_id    INTEGER,
-    ip         TEXT,
-    details    TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id            INTEGER PRIMARY KEY,
+    event_type    TEXT NOT NULL,
+    user_id       INTEGER,
+    ip            TEXT,
+    details       TEXT,
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    previous_hash TEXT,
+    current_hash  TEXT
 );
 
 CREATE TABLE encrypted_data (

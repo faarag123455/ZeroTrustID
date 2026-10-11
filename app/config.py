@@ -12,7 +12,13 @@ class Config:
     DATA_KEY = os.environ["DATA_KEY"]
     HMAC_KEY = os.environ["HMAC_KEY"].encode()
 
-    DATABASE = os.path.join(BASE_DIR, "instance", "zerotrustid.db")
+    DATABASE =     DATABASE = os.environ.get("DATABASE_PATH") or os.path.join(
+        BASE_DIR, "instance", "zerotrustid.db")
+
+    # Ancre d'intégrité des journaux : à placer HORS de la base.
+    # En production : autre disque, autre machine ou stockage en lecture seule.
+    LOG_ANCHOR_PATH = os.environ.get("LOG_ANCHOR_PATH") or os.path.join(
+        BASE_DIR, "instance", "log_anchor.json")
 
     # Cookies de session durcis (S3)
     SESSION_COOKIE_HTTPONLY = True

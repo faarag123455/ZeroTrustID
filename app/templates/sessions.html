@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Mes sessions actives</h2>
+<table border="1" cellpadding="4">
+  <tr><th>Ouverte le (UTC)</th><th>IP</th><th>Appareil</th><th>Action</th></tr>
+  {% for s in items %}
+  <tr>
+    <td>{{ s.created_at }}</td>
+    <td>{{ s.ip }}</td>
+    <td>{{ "Cet appareil" if s.current else "Autre" }}</td>
+    <td>
+      <form method="post" class="inline"
+            action="{{ url_for('account.revoke_session', ref=s.ref) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit">{{ "Me déconnecter" if s.current else "Révoquer" }}</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<form method="post" action="{{ url_for('account.revoke_other_sessions') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit">Révoquer toutes les autres sessions</button>
+</form>
+<p><a href="{{ url_for('account.index') }}">Retour</a></p>
+{% endblock %}

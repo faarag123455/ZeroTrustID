@@ -1,12 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Tableau de bord</h2>
-<p>Connecté en tant que : {{ email }}</p>
-<p><a href="{{ url_for('auth.mfa_setup') }}">Activer la MFA</a></p>
-<p><a href="{{ url_for('documents.index') }}">Mes documents</a></p>
-<p><a href="{{ url_for('admin.users') }}">Administration (admin)</a></p>
-<form method="post" action="{{ url_for('auth.logout') }}">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <button type="submit">Se déconnecter</button>
-</form>
+<p class="muted">Connecté en tant que {{ email }}</p>
+<div class="tiles">
+  <a class="tile" href="{{ url_for('documents.index') }}">
+    <strong>Mes documents</strong><span>Données chiffrées et signées</span>
+  </a>
+  <a class="tile" href="{{ url_for('account.index') }}">
+    <strong>Mon profil</strong><span>Mot de passe, MFA, codes de secours</span>
+  </a>
+  <a class="tile" href="{{ url_for('account.sessions') }}">
+    <strong>Mes sessions</strong><span>Appareils connectés</span>
+  </a>
+  {% if nav_user and nav_user.can_users %}
+  <a class="tile" href="{{ url_for('admin.users') }}">
+    <strong>Administration</strong><span>Utilisateurs et rôles</span>
+  </a>
+  {% endif %}
+  {% if nav_user and nav_user.can_logs %}
+  <a class="tile" href="{{ url_for('admin.logs') }}">
+    <strong>Journaux de sécurité</strong><span>Événements et alertes</span>
+  </a>
+  {% endif %}
+</div>
 {% endblock %}

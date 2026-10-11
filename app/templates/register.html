@@ -1,10 +1,17 @@
 {% extends "base.html" %}
+{% block card_class %}narrow{% endblock %}
 {% block content %}
 <h2>Inscription</h2>
+<p class="muted">12 caractères minimum, avec minuscule, majuscule, chiffre et caractère spécial.</p>
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label>Email <input type="email" name="email" required></label><br>
-  <label>Mot de passe <input type="password" name="password" required></label><br>
+  <label>Email
+    <input type="email" name="email" autocomplete="username" required>
+  </label>
+  <label>Mot de passe
+    <input type="password" name="password" autocomplete="new-password" required>
+  </label>
   <button type="submit">Créer mon compte</button>
 </form>
+<p class="muted">Vous avez un compte ? <a href="{{ url_for('auth.login') }}">Se connecter</a></p>
 {% endblock %}

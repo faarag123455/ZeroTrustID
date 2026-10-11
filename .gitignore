@@ -23,3 +23,7 @@ instance/*.sqlite3
 # OS
 .DS_Store
 Thumbs.db
+
+instance/log_anchor.json
+instance/backups/
+demo/

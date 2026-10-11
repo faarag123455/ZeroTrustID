@@ -8,7 +8,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import limiter
 from app.models.db import get_db
-from app.security import mfa
+from app.security import backup_codes, mfa
 from app.security.audit import log_event
 from app.security.decorators import login_required
 from app.security.lockout import is_locked, register_failure, reset_failures
@@ -122,7 +122,10 @@ def login_otp():
             session.clear()
             return redirect(url_for("auth.login"))
 
-        if mfa.verify_code(user["mfa_secret"], request.form.get("code", "")):
+        code = request.form.get("code", "")
+        # Code TOTP ou code de secours (usage unique) : même compteur d'échecs
+        if (mfa.verify_code(user["mfa_secret"], code)
+                or backup_codes.consume(user["id"], code)):
             reset_failures(user["id"])
             return finish_login(user["id"])
 
@@ -136,6 +139,14 @@ def login_otp():
 @bp.route("/mfa/setup", methods=["GET", "POST"])
 @login_required
 def mfa_setup():
+    # On ne peut pas reconfigurer une MFA déjà active (secret écrasé sinon).
+    row = get_db().execute("SELECT mfa_secret FROM users WHERE id = ?",
+                           (g.user["user_id"],)).fetchone()
+    if row["mfa_secret"]:
+        flash("La MFA est déjà activée. Désactivez-la depuis votre profil "
+              "pour la reconfigurer.")
+        return redirect(url_for("account.index"))
+
     if request.method == "POST":
         secret = session.get("mfa_pending_secret")
         if secret and mfa.verify_plain(secret, request.form.get("code", "")):
@@ -145,8 +156,8 @@ def mfa_setup():
             db.commit()
             session.pop("mfa_pending_secret", None)
             log_event("MFA_ENABLED", g.user["user_id"])
-            flash("MFA activée.")
-            return redirect(url_for("auth.dashboard"))
+            codes = backup_codes.generate(g.user["user_id"])
+            return render_template("backup_codes.html", codes=codes)
         flash("Code invalide.")
 
     secret = session.get("mfa_pending_secret")

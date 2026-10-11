@@ -1,11 +1,17 @@
 {% extends "base.html" %}
+{% block card_class %}narrow{% endblock %}
 {% block content %}
 <h2>Connexion</h2>
+<p class="muted">Accédez à votre espace sécurisé.</p>
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label>Email <input type="email" name="email" required></label><br>
-  <label>Mot de passe <input type="password" name="password" required></label><br>
+  <label>Email
+    <input type="email" name="email" autocomplete="username" required>
+  </label>
+  <label>Mot de passe
+    <input type="password" name="password" autocomplete="current-password" required>
+  </label>
   <button type="submit">Se connecter</button>
 </form>
-<p><a href="{{ url_for('auth.register') }}">Créer un compte</a></p>
+<p class="muted">Pas encore de compte ? <a href="{{ url_for('auth.register') }}">Créer un compte</a></p>
 {% endblock %}

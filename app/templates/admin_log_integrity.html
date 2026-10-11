@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block content %}
+{% set labels = {
+  "CONTENT_MODIFIED": "Contenu modifié",
+  "CHAIN_BROKEN": "Chaînage rompu",
+  "ID_GAP": "Entrées manquantes",
+  "INVALID_HASH": "Empreinte invalide",
+  "UNSEALED_IN_CHAIN": "Entrée non scellée",
+  "TRUNCATION_DETECTED": "Fin du journal supprimée",
+  "ANCHOR_MISMATCH": "Ancre incohérente",
+  "ANCHOR_INVALID": "Ancre invalide",
+  "ANCHOR_MISSING": "Ancre absente"} %}
+{% set anchors = {
+  "ok": "cohérente", "disabled": "désactivée",
+  "missing": "absente", "invalid": "invalide"} %}
+
+<h2>Intégrité des journaux</h2>
+<p class="muted">Recalcule la chaîne HMAC-SHA256 et la compare à l'ancre externe.
+La vérification est en lecture seule : elle ne corrige rien.</p>
+
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit">Vérifier l'intégrité des journaux</button>
+</form>
+
+{% if r %}
+  {% if r.ok %}
+  <div class="verdict ok">Intégrité vérifiée</div>
+  {% else %}
+  <div class="verdict bad">Violation d'intégrité détectée</div>
+  {% endif %}
+
+  <table>
+    <tr><th>Entrées vérifiées</th><td>{{ r.count }}</td></tr>
+    <tr><th>Entrées chaînées</th><td>{{ r.sealed }}</td></tr>
+    <tr><th>Entrées historiques (non protégées)</th><td>{{ r.legacy }}</td></tr>
+    <tr><th>Ancre externe</th><td>{{ anchors.get(r.anchor, r.anchor) }}</td></tr>
+    <tr><th>Anomalies</th><td>{{ r.anomalies|length }}</td></tr>
+  </table>
+
+  {% if r.anomalies %}
+  <h3>Anomalies détectées</h3>
+  <table>
+    <tr><th>Entrée</th><th>Type</th><th>Explication</th></tr>
+    {% for a in r.anomalies %}
+    <tr>
+      <td>{{ a.id if a.id is not none else "-" }}</td>
+      <td>{{ labels.get(a.type, a.type) }}</td>
+      <td>{{ a.message }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="muted">Les entrées situées avant la première anomalie sont fiables.
+  Le système ne répare jamais le journal automatiquement.</p>
+  {% endif %}
+
+  {% if r.legacy %}
+  <p class="muted">{{ r.legacy }} entrée(s) antérieure(s) à la chaîne n'ont pas
+  d'empreinte : leur intégrité ne peut pas être prouvée.</p>
+  {% endif %}
+
+  {% if r.head %}
+  <p class="muted">Empreinte de tête :</p>
+  <pre>{{ r.head }}</pre>
+  {% endif %}
+{% endif %}
+
+<p><a href="{{ url_for('admin.logs') }}">Retour aux journaux</a></p>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Mon profil</h2>
+<table border="1" cellpadding="4">
+  <tr><th>Email</th><td>{{ u.email }}</td></tr>
+  <tr><th>Rôle</th><td>{{ u.role }}</td></tr>
+  <tr><th>Compte créé le</th><td>{{ u.created_at }}</td></tr>
+  <tr><th>MFA</th><td>{{ "activée" if u.mfa else "désactivée" }}</td></tr>
+</table>
+
+<h3>Mot de passe</h3>
+<p><a href="{{ url_for('account.change_password') }}">Changer mon mot de passe</a></p>
+
+<h3>Authentification à deux facteurs</h3>
+{% if u.mfa %}
+<form method="post" action="{{ url_for('account.disable_mfa') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>Mot de passe pour confirmer
+    <input type="password" name="password" autocomplete="current-password" required>
+  </label>
+  <button type="submit">Désactiver la MFA</button>
+</form>
+{% else %}
+<p><a href="{{ url_for('auth.mfa_setup') }}">Activer la MFA</a></p>
+{% endif %}
+
+<h3>Sessions</h3>
+<p><a href="{{ url_for('account.sessions') }}">Gérer mes sessions actives</a></p>
+
+<p><a href="{{ url_for('auth.dashboard') }}">Retour</a></p>
+{% endblock %}

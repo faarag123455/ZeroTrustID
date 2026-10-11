@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Codes de secours</h2>
+<p><strong>Notez-les maintenant : ils ne seront plus jamais affichés.</strong>
+Chaque code ne sert qu'une fois, si vous perdez votre téléphone.</p>
+<pre>{% for c in codes %}{{ c }}
+{% endfor %}</pre>
+<p><a href="{{ url_for('auth.dashboard') }}">J'ai noté mes codes</a></p>
+{% endblock %}
